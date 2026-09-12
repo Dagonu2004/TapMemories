@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso - TapMemories</title>
+    
+    <!-- Enlazamos tu nuevo CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Script de Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración nativa de tus colores para Tailwind -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: '#F05B21',
+              bone: '#F8F7F5'
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-bone flex items-center justify-center min-h-screen p-4">
+    <!-- Aplicamos la clase premium de tu CSS para la tarjeta -->
+    <div class="album-card-premium p-8 w-full max-w-sm">
+        
+        <!-- Diseño del título estilizado con el color de marca -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Tap<span class="text-brand">Memories</span></h1>
+            <p class="text-sm text-gray-500 mt-1">Accede a tu cuenta</p>
+        </div>
+        
+        <form id="login-form" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <!-- Entradas de texto más redondeadas y con el aro de enfoque en naranja -->
+                <input type="email" id="email" required class="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-shadow bg-gray-50">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                <input type="password" id="password" required class="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-shadow bg-gray-50">
+            </div>
+            
+            <div class="pt-2">
+                <!-- Botón principal usando la clase btn-brand de tu CSS -->
+                <button type="submit" class="w-full btn-brand font-bold py-3 px-4 rounded-full">
+                    Entrar
+                </button>
+            </div>
+        </form>
+        
+        <p id="error-message" class="text-red-500 text-sm text-center mt-5 hidden bg-red-50 py-2 rounded-lg">Credenciales incorrectas</p>
+    </div>
+
+    <!-- Tu script de lógica de Login -->
+    <script type="module" src="js/auth.js"></script>
+</body>
+</html>

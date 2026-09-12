@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Álbumes - TapMemories</title>
+    
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración nativa de tus colores para Tailwind -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: '#F05B21',
+              bone: '#F8F7F5'
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-bone min-h-screen flex flex-col">
+    <!-- Aplicamos el efecto de cristal (glass-effect) a la cabecera -->
+    <header class="glass-effect py-4 px-6 flex justify-between items-center sticky top-0 z-20">
+        <h1 class="text-xl font-bold text-gray-800 tracking-tight">Tap<span class="text-brand">Memories</span></h1>
+        <button id="logout-btn" class="text-sm text-gray-500 font-semibold hover:text-red-500 transition-colors">Cerrar Sesión</button>
+    </header>
+
+    <main class="flex-grow p-4 max-w-4xl mx-auto w-full mt-4">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-800">Mis Álbumes</h2>
+            <!-- Aplicamos la clase btn-brand y lo hacemos redondeado (rounded-full) -->
+            <button id="create-album-btn" class="btn-brand text-sm font-bold py-2 px-5 rounded-full">
+                + Nuevo
+            </button>
+        </div>
+
+        <!-- Cuadrícula donde aparecerán los álbumes -->
+        <div id="albums-grid" class="grid grid-cols-2 md:grid-cols-3 gap-5">
+            <!-- Los álbumes se inyectarán aquí con JavaScript usando la clase .album-card-premium -->
+        </div>
+    </main>
+
+    <!-- Tu script de lógica del Dashboard -->
+    <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
