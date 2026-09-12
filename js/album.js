@@ -49,7 +49,7 @@ async function initAlbum() {
             // NUEVO: Hemos añadido la clase cursor-zoom-in y los atributos data-action y data-url a la imagen
             grid.innerHTML += `
                 <div class="relative group">
-                    <img src="${data.url}" class="w-full h-32 sm:h-48 object-cover rounded-xl shadow-sm cursor-zoom-in hover:opacity-90 transition-opacity" alt="Foto" data-action="view-photo" data-url="${data.url}">
+                    <img src="${data.url}" class="w-full h-64 sm:h-72 object-cover rounded-xl shadow-sm cursor-zoom-in hover:opacity-90 transition-opacity" alt="Foto" data-action="view-photo" data-url="${data.url}">
                     ${deleteButton}
                 </div>
             `;
