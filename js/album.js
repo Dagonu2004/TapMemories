@@ -101,34 +101,40 @@ document.addEventListener('click', async (e) => {
         modal.classList.remove('hidden');
     }
 
-    // 3. Si haces clic en Descargar
+    // 3. Si haces clic en Descargar / Compartir
     if (action === 'download-photo') {
         const url = e.target.getAttribute('data-url');
         const originalText = e.target.innerHTML;
         
-        // Efecto visual de carga
-        e.target.innerHTML = '<span class="pointer-events-none">Descargando...</span>';
+        e.target.innerHTML = '<span class="pointer-events-none">Procesando...</span>';
         
         try {
-            // Descargamos la imagen como un paquete de datos (Blob) para forzar la descarga
             const response = await fetch(url);
             const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = `Memoria_${Date.now()}.jpg`;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Limpieza
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(blobUrl);
+            const fileName = `TapMemories_${Date.now()}.jpg`;
+            const file = new File([blob], fileName, { type: blob.type });
+
+            // Comprueba si el dispositivo (como un iPhone) soporta el menú nativo de compartir
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Foto de TapMemories'
+                });
+            } else {
+                // Plan B: Descarga tradicional para ordenadores (Windows/Mac)
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(blobUrl);
+            }
         } catch (error) {
-            // Si el navegador bloquea la descarga invisible, abrimos la foto en otra pestaña como plan B
+            console.error("Error al procesar la imagen:", error);
             window.open(url, '_blank');
         } finally {
-            // Restauramos el botón
             e.target.innerHTML = originalText;
         }
     }
