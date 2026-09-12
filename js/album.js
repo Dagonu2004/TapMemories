@@ -94,14 +94,47 @@ document.addEventListener('click', async (e) => {
         const url = e.target.getAttribute('data-url');
         const modal = document.getElementById('photo-modal');
         const modalImg = document.getElementById('modal-image');
+        const downloadBtn = document.getElementById('download-btn');
         
         modalImg.src = url;
+        downloadBtn.setAttribute('data-url', url); // Pasamos la URL al botón de descarga
         modal.classList.remove('hidden');
     }
+
+    // 3. Si haces clic en Descargar
+    if (action === 'download-photo') {
+        const url = e.target.getAttribute('data-url');
+        const originalText = e.target.innerHTML;
+        
+        // Efecto visual de carga
+        e.target.innerHTML = '<span class="pointer-events-none">Descargando...</span>';
+        
+        try {
+            // Descargamos la imagen como un paquete de datos (Blob) para forzar la descarga
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = `Memoria_${Date.now()}.jpg`;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Limpieza
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            // Si el navegador bloquea la descarga invisible, abrimos la foto en otra pestaña como plan B
+            window.open(url, '_blank');
+        } finally {
+            // Restauramos el botón
+            e.target.innerHTML = originalText;
+        }
+    }
     
-    // 3. Si haces clic en el fondo negro o en la X del modal (Cerrarla)
-    if (e.target.id === 'photo-modal' || e.target.id === 'close-modal-btn') {
-        const modal = document.getElementById('photo-modal');
-        modal.classList.add('hidden');
+    // 4. Si haces clic en el fondo negro, en la X, o en la propia imagen ampliada (Cerrar)
+    if (e.target.id === 'photo-modal' || e.target.id === 'close-modal-btn' || action === 'close-modal') {
+        document.getElementById('photo-modal').classList.add('hidden');
     }
 });
