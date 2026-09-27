@@ -148,7 +148,26 @@ document.addEventListener('click', async (e) => {
     if (action === 'delete-photo' && isAdmin) {
         if(confirm("¿Borrar esta foto del álbum?")) {
             const photoId = e.target.getAttribute('data-photoid');
-            await deleteDoc(doc(db, "imagenes", photoId));
+            
+            try {
+                // A. Obtenemos el documento para saber la URL de la imagen
+                const fotoDoc = await getDoc(doc(db, "imagenes", photoId));
+                
+                if (fotoDoc.exists()) {
+                    const fotoData = fotoDoc.data();
+                    
+                    // B. Borramos el archivo físico del Storage (Firebase encuentra el archivo por su URL)
+                    const archivoRef = ref(storage, fotoData.url);
+                    await deleteObject(archivoRef);
+                }
+                
+                // C. Borramos el documento de texto de Firestore
+                await deleteDoc(doc(db, "imagenes", photoId));
+                
+            } catch (error) {
+                console.error("Error al borrar la foto:", error);
+                alert("Hubo un problema al borrar la foto.");
+            }
         }
     }
     
