@@ -126,7 +126,8 @@ document.getElementById('photo-input').addEventListener('change', async (e) => {
             await addDoc(collection(db, "imagenes"), {
                 url: downloadURL,
                 albumId: albumId,
-                uploadedAt: new Date()
+                uploadedAt: new Date(),
+                order: Date.now() // Asigna un número alto para que se coloque al final por defecto
             });
         } catch (error) { 
             console.error("Error al subir:", error); 
