@@ -1,6 +1,6 @@
 import { auth, db, storage } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import { doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -34,7 +34,8 @@ async function initAlbum() {
     }
 
     const photosRef = collection(db, "imagenes");
-    const q = query(photosRef, where("albumId", "==", albumId), orderBy("uploadedAt", "desc"));
+    // CAMBIO: Ahora ordenamos por el campo "order" de menor a mayor
+    const q = query(photosRef, where("albumId", "==", albumId), orderBy("order", "asc"));
     
     onSnapshot(q, (snapshot) => {
         const grid = document.getElementById('photos-grid');
@@ -46,14 +47,37 @@ async function initAlbum() {
                 ? `<button data-action="delete-photo" data-photoid="${doc.id}" class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-md hover:bg-red-700 z-10 transition-transform hover:scale-110">X</button>` 
                 : '';
 
-            // NUEVO: Hemos añadido la clase cursor-zoom-in y los atributos data-action y data-url a la imagen
+            // CAMBIO: Añadimos data-photoid al contenedor padre para que Sortable sepa qué documento de Firebase estamos moviendo
             grid.innerHTML += `
-                <div class="relative group">
-                    <img src="${data.url}" class="w-full h-64 sm:h-72 object-cover rounded-xl shadow-sm cursor-zoom-in hover:opacity-90 transition-opacity" alt="Foto" data-action="view-photo" data-url="${data.url}">
+                <div class="relative group" data-photoid="${doc.id}">
+                    <img src="${data.url}" class="w-full h-64 sm:h-72 object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity" alt="Foto" data-action="view-photo" data-url="${data.url}">
                     ${deleteButton}
                 </div>
             `;
         });
+
+        // NUEVO: Activamos la función de arrastrar solo si eres el administrador
+        if (isAdmin) {
+            new Sortable(grid, {
+                animation: 250, // La velocidad a la que se apartan las otras fotos (suave)
+                ghostClass: 'opacity-50', // La foto que tienes agarrada se vuelve semitransparente
+                delay: 150, // Retraso de milisegundos clave: permite hacer scroll normal en el móvil sin arrastrar sin querer
+                delayOnTouchOnly: true, 
+                onEnd: async function () {
+                    // Cuando sueltas la foto, leemos el nuevo orden visual y actualizamos Firebase de golpe
+                    const items = grid.querySelectorAll('[data-photoid]');
+                    const batch = writeBatch(db);
+                    
+                    items.forEach((item, index) => {
+                        const photoId = item.getAttribute('data-photoid');
+                        const docRef = doc(db, "imagenes", photoId);
+                        batch.update(docRef, { order: index });
+                    });
+                    
+                    await batch.commit();
+                }
+            });
+        }
     });
 }
 
