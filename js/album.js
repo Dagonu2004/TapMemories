@@ -60,11 +60,44 @@ async function initAlbum() {
 document.getElementById('photo-input').addEventListener('change', async (e) => {
     if (!isAdmin) return;
     const files = e.target.files;
+    if (files.length === 0) return;
+
+    // Cambiar el texto del botón mientras sube para dar feedback al usuario
+    const uploadLabel = e.target.parentElement;
+    const originalContent = uploadLabel.innerHTML;
+    uploadLabel.innerHTML = '<span class="pointer-events-none">Procesando fotos...</span>';
     
     for (let file of files) {
-        const storageRef = ref(storage, `albums/${albumId}/${Date.now()}_${file.name}`);
+        let uploadFile = file;
+
+        // Detectar si el archivo es HEIC (Formato de iPhone)
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+            try {
+                // Convertir el archivo HEIC a un Blob JPG
+                const convertedBlob = await heic2any({
+                    blob: file,
+                    toType: "image/jpeg",
+                    quality: 0.8 // Calidad excelente manteniendo un buen peso
+                });
+                
+                // Si la imagen tenía ráfaga, heic2any devuelve un array. Cogemos la principal.
+                const finalBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+                
+                // Renombramos el archivo cambiando la extensión a .jpg
+                const newName = file.name.replace(/\.[^/.]+$/, ".jpg");
+                uploadFile = new File([finalBlob], newName, { type: "image/jpeg" });
+                
+            } catch (error) { 
+                console.error("Error al convertir HEIC a JPG:", error); 
+                continue; // Si falla la conversión de esta foto, saltamos a la siguiente
+            }
+        }
+
+        // Proceso de subida normal a Firebase (ahora garantizado en JPG o formato original compatible)
+        const storageRef = ref(storage, `albums/${albumId}/${Date.now()}_${uploadFile.name}`);
         try {
-            const uploadResult = await uploadBytes(storageRef, file);
+            const uploadResult = await uploadBytes(storageRef, uploadFile);
             const downloadURL = await getDownloadURL(uploadResult.ref);
             await addDoc(collection(db, "imagenes"), {
                 url: downloadURL,
@@ -75,6 +108,11 @@ document.getElementById('photo-input').addEventListener('change', async (e) => {
             console.error("Error al subir:", error); 
         }
     }
+
+    // Restaurar el botón a su estado original
+    uploadLabel.innerHTML = originalContent;
+    // Limpiar el input para permitir volver a subir la misma foto si se desea
+    e.target.value = '';
 });
 
 // NUEVO: Gestión de todos los clics de la pantalla
