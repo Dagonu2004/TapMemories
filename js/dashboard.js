@@ -1,6 +1,7 @@
-import { auth, db } from './firebase-config.js';
+import { auth, db, storage } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js";
 
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "login.html";
@@ -73,9 +74,46 @@ document.addEventListener('click', async (e) => {
             loadAlbums();
         }
     } else if (action === 'delete') {
-        if (confirm("¿Seguro que quieres borrar este álbum?\nLas fotos seguirán en Storage pero el álbum desaparecerá.")) {
-            await deleteDoc(doc(db, "albums", id));
-            loadAlbums();
-        }
+        // Llamamos a la función completa pasándole el ID del álbum
+        await borrarAlbumCompleto(id);
+        // Recargamos la cuadrícula visual de álbumes
+        loadAlbums();
     }
 });
+
+async function borrarAlbumCompleto(albumId) {
+    if (!confirm("¿Seguro que quieres borrar este álbum? Se eliminarán todas las fotos para siempre.")) return;
+
+    try {
+        // 1. Buscar todos los documentos de fotos asociados a este álbum
+        const fotosRef = collection(db, "imagenes");
+        const q = query(fotosRef, where("albumId", "==", albumId));
+        const fotosSnapshot = await getDocs(q);
+
+        // 2. Borrar cada archivo físico de Storage y su documento de la base de datos
+        const promesasDeBorrado = fotosSnapshot.docs.map(async (fotoDoc) => {
+            const fotoData = fotoDoc.data();
+            try {
+                // Firebase es lo bastante listo para encontrar el archivo físico solo pasándole la URL
+                const archivoRef = ref(storage, fotoData.url);
+                await deleteObject(archivoRef);
+            } catch (error) {
+                console.error("No se pudo borrar el archivo de Storage:", error);
+            }
+            // Borramos el documento de la colección 'imagenes'
+            await deleteDoc(doc(db, "imagenes", fotoDoc.id));
+        });
+
+        // Esperamos a que todas las fotos se hayan borrado antes de continuar
+        await Promise.all(promesasDeBorrado);
+
+        // 3. Una vez vaciado, borramos el documento original del álbum
+        await deleteDoc(doc(db, "albums", albumId));
+        
+        alert("Álbum borrado por completo.");
+        // Aquí puedes recargar la lista de álbumes de tu interfaz
+        
+    } catch (error) {
+        console.error("Error borrando el álbum:", error);
+    }
+}
