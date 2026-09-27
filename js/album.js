@@ -47,10 +47,10 @@ async function initAlbum() {
                 ? `<button data-action="delete-photo" data-photoid="${doc.id}" class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-md hover:bg-red-700 z-10 transition-transform hover:scale-110">X</button>` 
                 : '';
 
-            // CAMBIO: Añadimos data-photoid al contenedor padre para que Sortable sepa qué documento de Firebase estamos moviendo
+            // CAMBIO: Sustituimos 'h-64 sm:h-72' por 'aspect-square'
             grid.innerHTML += `
                 <div class="relative group" data-photoid="${doc.id}">
-                    <img src="${data.url}" class="w-full h-64 sm:h-72 object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity" alt="Foto" data-action="view-photo" data-url="${data.url}">
+                    <img src="${data.url}" class="w-full aspect-square object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity" alt="Foto" data-action="view-photo" data-url="${data.url}">
                     ${deleteButton}
                 </div>
             `;
@@ -225,4 +225,32 @@ document.addEventListener('click', async (e) => {
     if (e.target.id === 'photo-modal' || e.target.id === 'close-modal-btn' || action === 'close-modal') {
         document.getElementById('photo-modal').classList.add('hidden');
     }
+});
+
+
+
+// --- LÓGICA DEL BOTÓN CAMBIAR VISTA ---
+// Definimos los 3 tamaños (Móvil / Ordenador)
+const viewModes = [
+    "grid-cols-1 md:grid-cols-3", // Modo 1: Grande (1 en móvil, 3 en PC)
+    "grid-cols-2 md:grid-cols-4", // Modo 2: Mediano (2 en móvil, 4 en PC)
+    "grid-cols-3 md:grid-cols-6"  // Modo 3: Pequeño (3 en móvil, 6 en PC)
+];
+
+// Empezamos en el Modo 1 (índice 0)
+let currentViewIndex = 0;
+
+document.getElementById('toggle-view-btn')?.addEventListener('click', () => {
+    const grid = document.getElementById('photos-grid');
+    
+    // 1. Quitamos las clases del tamaño actual
+    const oldClasses = viewModes[currentViewIndex].split(' ');
+    grid.classList.remove(...oldClasses);
+    
+    // 2. Avanzamos al siguiente tamaño (si llega al final, vuelve al principio)
+    currentViewIndex = (currentViewIndex + 1) % viewModes.length;
+    
+    // 3. Aplicamos las clases del nuevo tamaño
+    const newClasses = viewModes[currentViewIndex].split(' ');
+    grid.classList.add(...newClasses);
 });
