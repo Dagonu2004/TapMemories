@@ -1,7 +1,7 @@
 import { auth, db, storage } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js";
+import { ref, uploadBytes, getDownloadURL, deleteObject} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const albumId = urlParams.get('id');
