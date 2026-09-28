@@ -57,21 +57,22 @@ async function initAlbum() {
             `;
         });
 
-        // NUEVO: Activamos la función de arrastrar con configuración premium para móvil
+        // NUEVO: Destruimos la instancia de Sortable anterior si existe para evitar duplicados
         if (isAdmin) {
-            new Sortable(grid, {
+            if (window.miSortable) {
+                window.miSortable.destroy();
+            }
+
+            window.miSortable = new Sortable(grid, {
                 animation: 250, 
                 ghostClass: 'opacity-50', 
-                
-                // --- AJUSTES CLAVE PARA MÓVIL ---
-                delay: 250, // 250ms es el estándar de oro (evita arrastres accidentales al hacer scroll)
+                delay: 250,
                 delayOnTouchOnly: true, 
-                touchStartThreshold: 5, // Permite que el dedo "tiemble" hasta 5 píxeles sin cancelar el agarre
-                forceFallback: true, // Obliga a usar un clon visual propio, ignorando el arrastre nativo del móvil (que da tirones)
-                fallbackTolerance: 5, // Tolerancia extra para el modo fallback
+                touchStartThreshold: 5,
+                forceFallback: true, 
+                fallbackTolerance: 5, 
                 
                 onEnd: async function () {
-                    // Cuando sueltas la foto, leemos el nuevo orden visual y actualizamos Firebase de golpe
                     const items = grid.querySelectorAll('[data-photoid]');
                     const batch = writeBatch(db);
                     
