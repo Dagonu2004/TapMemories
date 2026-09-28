@@ -255,3 +255,26 @@ document.getElementById('toggle-view-btn')?.addEventListener('click', () => {
     const newClasses = viewModes[currentViewIndex].split(' ');
     grid.classList.add(...newClasses);
 });
+
+
+// --- LÓGICA DEL HEADER INTELIGENTE ---
+let lastScrollTop = 0;
+const header = document.getElementById('main-header');
+
+window.addEventListener('scroll', () => {
+    // Obtenemos la posición actual del scroll
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Si bajamos (y ya hemos bajado un poco para evitar ocultarlo al mínimo roce)
+    if (currentScroll > lastScrollTop && currentScroll > 80) {
+        // Le añadimos la clase de Tailwind que lo desplaza hacia arriba al 100% de su tamaño
+        header.classList.add('-translate-y-full');
+    } else {
+        // Si subimos, aunque sea un píxel, le quitamos la clase y vuelve a bajar suavemente
+        header.classList.remove('-translate-y-full');
+    }
+    
+    // Actualizamos la última posición. El (currentScroll <= 0 ? 0 : currentScroll) 
+    // es un truco para evitar un error visual en el "efecto rebote" de los iPhone (Safari)
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+});
