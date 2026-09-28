@@ -12,6 +12,7 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         isAdmin = true;
         document.getElementById('admin-back-btn').classList.remove('hidden');
+        document.getElementById('guest-login-logo').classList.add('hidden');
         document.getElementById('admin-upload-btn').classList.remove('hidden');
     }
     
