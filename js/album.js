@@ -51,19 +51,25 @@ async function initAlbum() {
             // CAMBIO: Sustituimos 'h-64 sm:h-72' por 'aspect-square'
             grid.innerHTML += `
                 <div class="relative group" data-photoid="${doc.id}">
-                    <img src="${data.url}" class="w-full aspect-square object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity" alt="Foto" data-action="view-photo" data-url="${data.url}">
+                    <img src="${data.url}" draggable="false" style="-webkit-touch-callout: none;" class="w-full aspect-square object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity select-none" alt="Foto" data-action="view-photo" data-url="${data.url}">
                     ${deleteButton}
                 </div>
             `;
         });
 
-        // NUEVO: Activamos la función de arrastrar solo si eres el administrador
+        // NUEVO: Activamos la función de arrastrar con configuración premium para móvil
         if (isAdmin) {
             new Sortable(grid, {
-                animation: 250, // La velocidad a la que se apartan las otras fotos (suave)
-                ghostClass: 'opacity-50', // La foto que tienes agarrada se vuelve semitransparente
-                delay: 150, // Retraso de milisegundos clave: permite hacer scroll normal en el móvil sin arrastrar sin querer
+                animation: 250, 
+                ghostClass: 'opacity-50', 
+                
+                // --- AJUSTES CLAVE PARA MÓVIL ---
+                delay: 250, // 250ms es el estándar de oro (evita arrastres accidentales al hacer scroll)
                 delayOnTouchOnly: true, 
+                touchStartThreshold: 5, // Permite que el dedo "tiemble" hasta 5 píxeles sin cancelar el agarre
+                forceFallback: true, // Obliga a usar un clon visual propio, ignorando el arrastre nativo del móvil (que da tirones)
+                fallbackTolerance: 5, // Tolerancia extra para el modo fallback
+                
                 onEnd: async function () {
                     // Cuando sueltas la foto, leemos el nuevo orden visual y actualizamos Firebase de golpe
                     const items = grid.querySelectorAll('[data-photoid]');
